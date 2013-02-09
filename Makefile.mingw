@@ -1,0 +1,30 @@
+#
+# Begin Makefile
+# Compiler used: MinGW with MSYS
+#
+OPT=-Os -march=pentium4
+DEFINES= -DTEST
+STRIP=-s
+CWARNINGS=-Wall -Wextra
+CXXWARNINGS=-Wall -Wextra -Werror -pedantic
+CFLAGS=$(OPT) $(CWARNINGS) -std=c99 $(DEFINES) $(STRIP)
+CXXFLAGS=$(OPT) $(CXXWARNINGS) -Werror -std=c++11 $(DEFINES) $(STRIP)
+OBJS= Ansitok.o
+CLIBS=
+CXXLIBS=
+
+.PHONY: default
+default:
+	@echo Syntax: make [clean] PROGRAM.exe
+
+%.exe: %.c \
+       $(OBJS)	
+	gcc $(CFLAGS) -o $@ $< $(OBJS) $(CLIBS)
+
+%.exe: %.cpp \
+       $(OBJS)	
+	g++ $(CXXFLAGS) -o $@ $< $(OBJS) $(CXXLIBS)
+
+.PHONY: clean
+clean:
+	rm -vf *.exe *.o
