@@ -5,10 +5,10 @@
 #include <assert.h>
 
 #define _(VAR) _private_ ## VAR
-static void Ansitok_seekNext_(Ansitok *t);
-static bool Ansitok_equals_(const Ansitok a, const Ansitok b);
-static void Ansitok_queueNext_(Ansitok *t);
-static char *Ansitok_getNext_(Ansitok *t);
+static void seekNext(Ansitok *t);
+static bool equals(const Ansitok a, const Ansitok b);
+static void queueNext(Ansitok *t);
+static char *getNext(Ansitok *t);
 
 Ansitok Ansitok_init(char *s, const char *delim, unsigned optflags)
 {
@@ -26,11 +26,11 @@ Ansitok Ansitok_init(char *s, const char *delim, unsigned optflags)
 	};
 	if (optflags | ANSITOK_OPT_SKIPEMPTY)
 		t._(skipempty) = true;
-	Ansitok_queueNext_(&t);
+	queueNext(&t);
 	return t;
 }
 
-static bool Ansitok_equals_(const Ansitok a, const Ansitok b)
+static bool equals(const Ansitok a, const Ansitok b)
 {
 	if (strcmp(a._(str), b._(str)) != 0) return false;
 	if (a._(delim) != b._(delim)) return false;
@@ -54,7 +54,7 @@ char *Ansitok_strtok(char *s, const char *delim, Ansitok *t) {
 
 void Ansitok_done(Ansitok *t)
 {
-	assert(!Ansitok_equals_(*t, ANSITOK_0));
+	assert(!equals(*t, ANSITOK_0));
 	while (Ansitok_getNext(t) != NULL)
 		;
 	*t = ANSITOK_0;
@@ -70,7 +70,7 @@ bool Ansitok_hasNext(Ansitok *t)
 	return t->_(hasnext);
 }
 
-static void Ansitok_seekNext_(Ansitok *t)
+static void seekNext(Ansitok *t)
 {
 	t->_(endpos)++;
 	t->_(begpos) = t->_(endpos);
@@ -86,7 +86,7 @@ static void Ansitok_seekNext_(Ansitok *t)
 }
 
 static char *
-Ansitok_getNext_(Ansitok *t)
+getNext(Ansitok *t)
 {
 	char *token;
 	for(;;) {
@@ -97,7 +97,7 @@ Ansitok_getNext_(Ansitok *t)
 			t->_(str)[t->_(endpos)] = t->_(endchar); // Restore endchar
 		else
 			t->_(firstrun) = false;
-		Ansitok_seekNext_(t);
+		seekNext(t);
 		token = &(t->_(str)[t->_(begpos)]);
 
 		if (t->_(skipempty) == false || strlen(token) > 0)
@@ -107,14 +107,14 @@ Ansitok_getNext_(Ansitok *t)
 }
 
 static void
-Ansitok_queueNext_(Ansitok *t)
+queueNext(Ansitok *t)
 {
 	if (t->_(queuedtoken) != NULL)
 		return;
 	if (t->_(hasnext) == false)
 		return;
 		
-	char *token = Ansitok_getNext_(t);
+	char *token = getNext(t);
 	if (token==NULL) {
 		t->_(hasnext) = false;
 		t->_(queuedtoken) = NULL;
@@ -127,7 +127,7 @@ Ansitok_queueNext_(Ansitok *t)
 char *
 Ansitok_getNext(Ansitok *t)
 {
-	Ansitok_queueNext_(t);
+	queueNext(t);
 	char *token = t->_(queuedtoken);
 	t->_(queuedtoken) = NULL;
 	return token;
